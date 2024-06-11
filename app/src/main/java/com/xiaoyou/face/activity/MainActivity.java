@@ -63,6 +63,11 @@ public class MainActivity extends BaseActivity {
             "libarcsoft_image_util.so",
     };
 
+//    static {
+//        for(String library : LIBRARIES){
+//            System.loadLibrary(library);
+//        }
+//    }
     private ActivityMainBinding binding;
 
     @Override
@@ -153,6 +158,13 @@ public class MainActivity extends BaseActivity {
 
                 long start = System.currentTimeMillis();
                 int activeCode = FaceEngine.activeOnline(MainActivity.this, Constants.APP_ID, Constants.SDK_KEY);
+                if(activeCode == ErrorInfo.MOK){
+                    Log.i(TAG, "activeOnline success");
+                }else if(activeCode == ErrorInfo.MERR_ASF_ALREADY_ACTIVATED){
+                    Log.i(TAG, "already activated");
+                }else{
+                    Log.i(TAG, "activeOnline failed, code is : " + activeCode);
+                }
                 Log.i(TAG, "subscribe cost: " + (System.currentTimeMillis() - start));
                 emitter.onNext(activeCode);
             }
