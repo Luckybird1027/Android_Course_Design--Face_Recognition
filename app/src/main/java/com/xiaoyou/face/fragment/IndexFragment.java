@@ -1,6 +1,7 @@
 package com.xiaoyou.face.fragment;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -9,13 +10,17 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.haibin.calendarview.Calendar;
 import com.haibin.calendarview.CalendarLayout;
 import com.haibin.calendarview.CalendarView;
 import com.xiaoyou.face.R;
+import com.xiaoyou.face.activity.MainActivity;
 import com.xiaoyou.face.activity.RegisterAndRecognizeActivity;
 import com.xiaoyou.face.activity.SignDetailActivity;
 import com.xiaoyou.face.adapter.FunctionAdapter;
@@ -33,13 +38,14 @@ import java.util.Map;
 
 /**
  * 打卡的fragment类
+ *
  * @author 小游
  * @date 2020/12/14
  */
 public class IndexFragment extends Fragment implements
         CalendarView.OnCalendarSelectListener,
         CalendarView.OnYearChangeListener,
-        View.OnClickListener{
+        View.OnClickListener {
 
     /**
      * 日历组件显示的时间map值
@@ -47,6 +53,7 @@ public class IndexFragment extends Fragment implements
     Map<String, Calendar> timeMap;
 
     private FragmentIndexBinding binding;
+    private ExampleFragmentListener activityCommander;
     TextView mTextMonthDay;
     TextView mTextYear;
     TextView mTextLunar;
@@ -55,13 +62,22 @@ public class IndexFragment extends Fragment implements
     RelativeLayout mRelativeTool;
     private int mYear;
     CalendarLayout mCalendarLayout;
+    FloatingActionButton mFloatingActionButton;
+    Context mContext;
+    Window mWindow;
 
     private final static int REQUEST_CODE = 45;
 
 
+    public interface ExampleFragmentListener {
+        void activeEngineCalled(View view);
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        this.mContext = getActivity();
+        this.mWindow = getActivity().getWindow();
     }
 
     @Override
@@ -83,26 +99,28 @@ public class IndexFragment extends Fragment implements
         mRelativeTool = binding.rlTool;
         // 日历布局
         mCalendarLayout = binding.calendarLayout;
+        // 激活按钮
+        mFloatingActionButton = binding.ActivateButton;
         // 数据初始化
         initView();
         initData();
         // 宫格布局初始化
         // 9宫格布局初始化
         ArrayList<Channel> channelList = new ArrayList<>();
-        channelList.add(new Channel(R.mipmap.face,"人脸录入"));
-        channelList.add(new Channel(R.mipmap.login,"开始签到"));
-        channelList.add(new Channel(R.mipmap.statistics,"签到详情"));
-        binding.toolList.setAdapter(new FunctionAdapter(channelList,getContext()));
+        channelList.add(new Channel(R.mipmap.face, "人脸录入"));
+        channelList.add(new Channel(R.mipmap.login, "开始签到"));
+        channelList.add(new Channel(R.mipmap.statistics, "签到详情"));
+        binding.toolList.setAdapter(new FunctionAdapter(channelList, getContext()));
         // grad 布局点击事件监听
         binding.toolList.setOnItemClickListener((parent, view, position, id) -> {
-            switch (position){
+            switch (position) {
                 case 0:
                     startActivity(new Intent(getContext(), RegisterAndRecognizeActivity.class));
                     break;
                 case 1:
                     // 签到不需要显示录入按钮
                     Intent intent = new Intent(getContext(), RegisterAndRecognizeActivity.class);
-                    intent.putExtra("login",false);
+                    intent.putExtra("login", false);
                     startActivity(intent);
                     break;
                 case 2:
@@ -112,6 +130,14 @@ public class IndexFragment extends Fragment implements
                     break;
             }
         });
+        // 激活按钮点击事件监听
+        binding.ActivateButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                activityCommander.activeEngineCalled(getActivity().getWindow().getDecorView());
+            }
+        });
+
         // 返回视图view
         return binding.getRoot();
     }
@@ -126,10 +152,21 @@ public class IndexFragment extends Fragment implements
 
     }
 
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        try {
+            // 将 context 强制转换为 ExampleFragmentListener 接口
+            activityCommander = (ExampleFragmentListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString() + " must implement ExampleFragmentListener");
+        }
+    }
     /**
-     *  日历视图点击事件
-      * @param calendar 日历控件
-     * @param isClick 是否点击
+     * 日历视图点击事件
+     *
+     * @param calendar 日历控件
+     * @param isClick  是否点击
      */
     @SuppressLint("SetTextI18n")
     @Override
@@ -153,9 +190,10 @@ public class IndexFragment extends Fragment implements
 
     /**
      * 设置标记
-     * @param year 年份
+     *
+     * @param year  年份
      * @param month 月份
-     * @param day 日
+     * @param day   日
      * @param color 颜色
      * @return calendar对象
      */
@@ -172,7 +210,7 @@ public class IndexFragment extends Fragment implements
 
     /**
      * 视图初始化
-      */
+     */
     @SuppressLint("SetTextI18n")
     protected void initView() {
         // 点击月份显示月份切换
@@ -209,7 +247,7 @@ public class IndexFragment extends Fragment implements
     /**
      * 日历初始化
      */
-    private void initData(){
+    private void initData() {
 //        int year = mCalendarView.getCurYear();
 //        int month = mCalendarView.getCurMonth();
         Service service = new SQLiteHelper(getContext());
@@ -217,7 +255,7 @@ public class IndexFragment extends Fragment implements
         timeMap = new HashMap<>();
         // 添加时间标记
         for (DateHistoryTO history : calendar) {
-            addMark(history.getYear(),history.getMonth(),history.getDay());
+            addMark(history.getYear(), history.getMonth(), history.getDay());
         }
         //此方法在巨大的数据量上不影响遍历性能，推荐使用
         mCalendarView.setSchemeDate(timeMap);
@@ -226,8 +264,10 @@ public class IndexFragment extends Fragment implements
     /**
      * 添加时间标记
      */
-    private void addMark(int year, int month, int day){
-       timeMap.put(getSchemeCalendar(year, month, day, Tools.getRandomColor()).toString(),
+    private void addMark(int year, int month, int day) {
+        timeMap.put(getSchemeCalendar(year, month, day, Tools.getRandomColor()).toString(),
                 getSchemeCalendar(year, month, day, Tools.getRandomColor()));
     }
+
+
 }

@@ -42,12 +42,13 @@ import static com.arcsoft.face.enums.DetectFaceOrientPriority.ASF_OP_270_ONLY;
 import static com.arcsoft.face.enums.DetectFaceOrientPriority.ASF_OP_ALL_OUT;
 
 
+
 /**
  * 主activity
  * @author 小游
  * @date 2020/12/14
  */
-public class MainActivity extends BaseActivity {
+public class MainActivity extends BaseActivity implements IndexFragment.ExampleFragmentListener {
 
     private static final String TAG = "ChooseFunctionActivity";
     private static final int ACTION_REQUEST_PERMISSIONS = 0x001;
@@ -91,6 +92,10 @@ public class MainActivity extends BaseActivity {
         ConfigUtil.setFtOrient(getApplicationContext(), ASF_OP_ALL_OUT);
     }
 
+    public void activeEngineCalled(View view) {
+        // 在这里处理从 Fragment 传递过来的数据
+        activeEngine(view);
+    }
     /**
      * tab初始化
      */
