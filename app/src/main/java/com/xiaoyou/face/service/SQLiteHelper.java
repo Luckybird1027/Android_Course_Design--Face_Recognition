@@ -7,7 +7,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Build;
-import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
@@ -30,7 +29,7 @@ public class SQLiteHelper extends SQLiteOpenHelper implements Service {
 
     //创建数据库，里面添加了3个参数，分别是：Msgone VARCHAR类型，30长度当然这了可以自定义
     //Msgtwo VARCHAR(20)   Msgthree VARCHAR(30))  NOT NULL不能为空
-    String sql = "CREATE TABLE attendance (stu_id int(11) NOT NULL ," +
+    String createAttendance = "CREATE TABLE attendance (stu_id int(11) NOT NULL ," +
             "  name varchar(20) DEFAULT NULL ," +
             "  is_Sign bit(1) DEFAULT NULL ," +
             "  day int(5) DEFAULT NULL ," +
@@ -53,7 +52,7 @@ public class SQLiteHelper extends SQLiteOpenHelper implements Service {
     //建表
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL(sql);
+        db.execSQL(createAttendance);
         db.execSQL(createStudent);
     }
 
@@ -189,8 +188,8 @@ public class SQLiteHelper extends SQLiteOpenHelper implements Service {
         selectionArgs[1] = String.valueOf(LocalDate.now().getMonthValue());
         selectionArgs[2] = String.valueOf(LocalDate.now().getYear());
         @SuppressLint("Recycle") Cursor cursor1 = db.rawQuery("SELECT  * FROM " + TABLE_ATTENDANCE + " WHERE  day= ? and month = ? and year = ? ", selectionArgs);
-        @SuppressLint("Recycle") Cursor curso2r = db.rawQuery("SELECT  * FROM " + TABLE_STUDENT, null);
-        int count = curso2r.getCount();
+        @SuppressLint("Recycle") Cursor cursor2 = db.rawQuery("SELECT  * FROM " + TABLE_STUDENT, null);
+        int count = cursor2.getCount();
         History history = new History();
         history.setDate(LocalDate.now());
         history.setIsSignUp(cursor1.getCount());
